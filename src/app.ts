@@ -1,10 +1,12 @@
 import "dotenv/config";
 import express from "express";
 import { pool } from "./db";
-
+import usersRouter from "./routes/users"
 const app = express();
 
 app.use(express.json());
+
+app.use("/users",usersRouter);
 
 app.get("/health",async (_,res)=>{
     try {
@@ -14,6 +16,7 @@ app.get("/health",async (_,res)=>{
         res.status(500).json({ status: "db_error",message:error.message });
     }
 })
+
 
 const PORT = process.env.PORT || 3000;
 
