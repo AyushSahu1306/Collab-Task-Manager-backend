@@ -2,11 +2,14 @@ import "dotenv/config";
 import express from "express";
 import { pool } from "./db";
 import usersRouter from "./routes/users"
+import workspaceRouter from "./routes/workspaces"
+
 const app = express();
 
 app.use(express.json());
 
 app.use("/users",usersRouter);
+app.use("/workspaces",workspaceRouter);
 
 app.get("/health",async (_,res)=>{
     try {
