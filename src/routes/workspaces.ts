@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { withTransaction } from "../db/transaction";
+import { requireWorkspaceMember, requireWorkspaceOwner } from "../middleware/workspaceAuth";
 
 const router = Router();
 
@@ -31,4 +32,13 @@ router.post("/",async(req,res)=>{
     }
 })
 
+router.get("/:workspaceId",requireWorkspaceMember(),async(req,res)=>{
+    const {workspaceId} = req.params;
+    res.json({workspaceId});
+})
+
+
+router.delete("/:workspaceId",requireWorkspaceOwner(),async(req,res)=>{
+    res.json({deleted:true});
+})
 export default router;

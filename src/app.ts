@@ -3,13 +3,16 @@ import express from "express";
 import { pool } from "./db";
 import usersRouter from "./routes/users"
 import workspaceRouter from "./routes/workspaces"
+import { auth } from "./middleware/auth";
+import { errorHandler } from "./middleware/error";
 
 const app = express();
 
 app.use(express.json());
+app.use("/api",auth);
 
-app.use("/users",usersRouter);
-app.use("/workspaces",workspaceRouter);
+app.use("/api/users",usersRouter);
+app.use("/api/workspaces",workspaceRouter);
 
 app.get("/health",async (_,res)=>{
     try {
@@ -19,6 +22,9 @@ app.get("/health",async (_,res)=>{
         res.status(500).json({ status: "db_error",message:error.message });
     }
 })
+
+
+app.use(errorHandler);
 
 
 const PORT = process.env.PORT || 3000;
