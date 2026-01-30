@@ -20,7 +20,7 @@ export function requireWorkspaceMember(){
 
 export function requireWorkspaceOwner() {
   return async (req: Request, res: Response, next: NextFunction) => {
-    const userId = (req as any).user.id;
+    const userId = req.user!.id;
     const workspaceId = req.params.workspaceId;
 
     const rows = await query(
