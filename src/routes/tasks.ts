@@ -77,4 +77,41 @@ router.post("/tasks/:taskId/assign",async(req,res) => {
     res.json({assigned:true});
 })
 
+
+router.post("/tasks/:taskId/status",async(req,res)=>{
+    const {taskId} = req.params;
+    const {status,version} = req.body;
+
+    const tasks = await query(
+        `SELECT workspace_id FROM tasks WHERE id = $1`,
+        [taskId]
+    );
+
+    if (!tasks.length) {
+        return res.status(404).json({ error: "task not found" });
+    }
+
+    const workspaceId = tasks[0].workspace_id;
+
+    const members = await query(
+        `SELECT 1 FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId,req.user!.id]
+    );
+
+    if (!members.length) {
+        return res.status(403).json({ error: "not workspace member" });
+    }
+
+    const rows = await query(
+        `UPDATE tasks SET status = $1, version = version+1 WHERE id = $2 and version = $3 RETURNING id,status,version`,
+        [status,taskId,version]
+    );
+
+    if (!rows.length) {
+        return res.status(409).json({ error: "conflict" });
+    }
+
+    res.json(rows[0]);
+})
+
 export default router;
