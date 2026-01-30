@@ -114,4 +114,44 @@ router.post("/tasks/:taskId/status",async(req,res)=>{
     res.json(rows[0]);
 })
 
+
+router.get("/project/:projectId/tasks",async(req,res)=>{
+    const {projectId} = req.params;
+    const {cursorCreatedAt,cursorId,limit="20"} = req.query;
+
+    const projects = await query(
+        `SELECT workspace_id FROM projects WHERE id = $1`,
+        [projectId]
+    );
+
+    if (!projects.length) {
+        return res.status(404).json({ error: "project not found" });
+    }
+
+    const workspaceId = projects[0].workspace_id;
+
+    const members = await query(
+        `SELECT 1 FROM workspace_members WHERE workspace_id = $1 AND user_id = $2`,
+        [workspaceId,req.user!.id]
+    );
+
+    if (!members.length) {
+        return res.status(403).json({ error: "not workspace member" });
+    }
+
+    let sql = `SELECT id,title,status,created_at,version FROM tasks WHERE project_id = $1`;
+    const params: any[] = [projectId];
+    
+    if(cursorCreatedAt && cursorId){
+        sql += `and (created_at,id) < ($2,$3)`;
+        params.push(cursorCreatedAt,cursorId);
+    }
+
+    sql += `ORDER BY created_at DESC,id DESC limit $${params.length+1}`;
+    params.push(Number(limit));
+
+    const rows = await query(sql,params);
+
+    res.json(rows);
+})
 export default router;
